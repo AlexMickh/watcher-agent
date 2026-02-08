@@ -1,5 +1,5 @@
 {
     "service_name": "test",
     "server_addr": "localhost:8080",
-    "log_path": "../test.log"
+    "log_path": "test.log"
 }

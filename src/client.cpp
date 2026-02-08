@@ -1,9 +1,9 @@
 #include "client.h"
 
-Client::Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReader> logreader, bool &done)
-    : m_stub(Watcher::NewStub(channel)), m_logreader(std::move(logreader))
+Client::Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReader> logreader, bool &done, std::unique_ptr<ICpu> cpu)
+    : m_stub(Watcher::NewStub(channel)), m_logreader(std::move(logreader)), m_cpu(std::move(cpu))
 {
-    m_thread = std::thread([this, &done]
+    m_log_thread = std::thread([this, &done]
     {
         while (!done)
         {
@@ -14,11 +14,16 @@ Client::Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReade
             }
         }
     });
+
+    m_cpu_thread = std::thread([this, &done]{
+        send_cpu_usage(done);
+    });
 }
 
 Client::~Client()
 {
-    m_thread.join();
+    m_log_thread.join();
+    m_cpu_thread.join();
 }
 
 void Client::send_logs(std::vector<std::pair<std::string, LogLevel>> &&data)
@@ -49,14 +54,27 @@ void Client::send_logs(std::vector<std::pair<std::string, LogLevel>> &&data)
         grpc::ClientContext ctx;
         google::protobuf::Empty resp;
 
-        grpc::Status status = m_stub->GetLogs(&ctx, req, &resp);
-        if (status.ok())
+        m_stub->GetLogs(&ctx, req, &resp);
+    }
+}
+
+void Client::send_cpu_usage(bool &done)
+{
+    grpc::ClientContext ctx;
+    google::protobuf::Empty resp;
+
+    std::unique_ptr<grpc::ClientWriter<api::v1::CpuUsageRequest>> writer(m_stub->CpuUsage(&ctx, &resp));
+
+    while (!done)
+    {
+        api::v1::CpuUsageRequest req;
+        req.set_usage(m_cpu->calculate_usage());
+        if (!writer->Write(req))
         {
-            std::cout << "ok" << std::endl;
-        }
-        else 
-        {
-            std::cout << status.error_message() << std::endl;
+            break;
         }
     }
+    
+    writer->WritesDone();
+    writer->Finish();
 }

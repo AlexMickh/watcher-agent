@@ -6,6 +6,7 @@ import "google/protobuf/empty.proto";
 
 service Watcher {
     rpc GetLogs(GetLogsRequest) returns (google.protobuf.Empty);
+    rpc CpuUsage(stream CpuUsageRequest) returns (google.protobuf.Empty);
 }
 
 enum LogLevel {
@@ -23,4 +24,8 @@ message LogItem {
 
 message GetLogsRequest {
     repeated LogItem logs = 1;
+}
+
+message CpuUsageRequest {
+    double usage = 1;
 }

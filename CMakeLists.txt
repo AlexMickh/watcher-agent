@@ -27,7 +27,8 @@ protobuf_generate(
     PLUGIN "protoc-gen-grpc=${grpc_cpp_plugin_location}"
 )
 
-add_executable(agent src/main.cpp src/config.cpp src/ilogreader.h src/logreader.cpp src/client.cpp)
+add_executable(agent src/main.cpp src/config.cpp src/ilogreader.h src/logreader.cpp src/client.cpp src/cpu.cpp
+               src/icpu.h)
 
 target_link_libraries(agent PRIVATE nlohmann_json::nlohmann_json protolib)
 
