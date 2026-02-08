@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     Client client{
         grpc::CreateChannel(cfg.get_server_addr(), grpc::InsecureChannelCredentials()),
-        std::move(reader), done, std::move(cpu)};
+        std::move(reader), done, std::move(cpu), std::move(cfg.get_service_name())};
 
     return 0;
 }

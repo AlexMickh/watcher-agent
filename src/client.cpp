@@ -1,8 +1,11 @@
 #include "client.h"
 
-Client::Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReader> logreader, bool &done, std::unique_ptr<ICpu> cpu)
-    : m_stub(Watcher::NewStub(channel)), m_logreader(std::move(logreader)), m_cpu(std::move(cpu))
+Client::Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReader> logreader, bool &done, std::unique_ptr<ICpu> cpu,
+               const std::string &service_name)
+    : m_stub(Watcher::NewStub(channel)), m_logreader(std::move(logreader)), m_cpu(std::move(cpu)), m_service_name(std::move(service_name))
 {
+    handshake();
+
     m_log_thread = std::thread([this, &done]
     {
         while (!done)
@@ -77,4 +80,19 @@ void Client::send_cpu_usage(bool &done)
     
     writer->WritesDone();
     writer->Finish();
+}
+
+void Client::handshake()
+{
+    api::v1::HandShakeRequest req;
+    req.set_service_name(m_service_name);
+
+    grpc::ClientContext ctx;
+    google::protobuf::Empty resp;
+    grpc::Status status = m_stub->HandShake(&ctx, req, &resp);
+
+    if (!status.ok())
+    {
+        throw std::runtime_error("failed to do handshake with server");
+    }
 }
