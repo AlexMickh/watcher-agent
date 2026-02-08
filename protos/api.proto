@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package api.v1;
+
+import "google/protobuf/empty.proto";
+
+service Watcher {
+    rpc GetLogs(GetLogsRequest) returns (google.protobuf.Empty);
+}
+
+enum LogLevel {
+    DEBUG = 0;
+    INFO = 1;
+    WARN = 2;
+    ERROR = 3;
+    FATAL = 4;
+}
+
+message LogItem {
+    LogLevel log_type = 1;
+    string log = 2;
+}
+
+message GetLogsRequest {
+    repeated LogItem logs = 1;
+}
