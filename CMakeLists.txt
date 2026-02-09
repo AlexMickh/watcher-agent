@@ -28,7 +28,7 @@ protobuf_generate(
 )
 
 add_executable(agent src/main.cpp src/config.cpp src/ilogreader.h src/logreader.cpp src/client.cpp src/cpu.cpp
-               src/icpu.h)
+               src/icpu.h src/retryer.h)
 
 target_link_libraries(agent PRIVATE nlohmann_json::nlohmann_json protolib)
 

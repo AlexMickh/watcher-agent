@@ -5,12 +5,14 @@
 #include "client.h"
 #include <csignal>
 #include "cpu.h"
+#include "retryer.h"
 
 bool done = false;
 
-void signalHandler(int)
+void signalHandler(int sig)
 {
     done = true;
+    exit(sig);
 }
 
 int main(int argc, char *argv[])
@@ -30,7 +32,14 @@ int main(int argc, char *argv[])
 
     Client client{
         grpc::CreateChannel(cfg.get_server_addr(), grpc::InsecureChannelCredentials()),
-        std::move(reader), done, std::move(cpu), std::move(cfg.get_service_name())};
+        std::move(reader), std::move(cpu), std::move(cfg.get_service_name())};
+
+    if (!client.start(done))
+    {
+        Retryer<Client> retryer{client};
+        retryer.retry(5000);
+        client.start(done);
+    }
 
     return 0;
 }

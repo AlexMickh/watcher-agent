@@ -11,13 +11,32 @@ using api::v1::Watcher;
 class Client
 {
 public:
-    Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReader> logreader, bool &done, std::unique_ptr<ICpu> cpu,
+    Client(std::shared_ptr<grpc::Channel> channel, std::unique_ptr<ILogReader> logreader, std::unique_ptr<ICpu> cpu,
            const std::string &service_name);
     ~Client();
+
+    bool start(bool &done);
+
+    inline bool retry()
+    {
+        return handshake();
+    }
+
 private:
-    void send_logs(std::vector<std::pair<std::string, LogLevel>> &&data);
+    bool send_logs(const std::vector<std::pair<std::string, LogLevel>> &data);
     void send_cpu_usage(bool &done);
-    void handshake();
+    
+    inline bool handshake()
+    {
+        api::v1::HandShakeRequest req;
+        req.set_service_name(m_service_name);
+
+        grpc::ClientContext ctx;
+        google::protobuf::Empty resp;
+        grpc::Status status = m_stub->HandShake(&ctx, req, &resp);
+
+        return status.ok();
+    }
 
     std::unique_ptr<Watcher::Stub> m_stub;
     std::unique_ptr<ILogReader> m_logreader;

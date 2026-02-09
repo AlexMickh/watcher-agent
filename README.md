@@ -1,6 +1,6 @@
 # Watcher - a tool that helps you to monitor the server status
 
-This part of app - agent that runs on server and send data other gRPC. Wather is an open source app that allows you to replace its parts. If you want to do it you just need to implement your service that matches the contract from <a href="https://github.com/AlexMickh/watcher-agent/tree/master/protos">protos folder.</a>
+This part of app - agent that runs on server and send data other gRPC. Watcher is an open source app that allows you to replace its parts. If you want to do it you just need to implement your service that matches the contract from <a href="https://github.com/AlexMickh/watcher-agent/tree/master/protos">protos folder.</a>
 This app reads log file you specify in the config and also monitors the CPU load.
 
 ## To start using Watcher Agent
